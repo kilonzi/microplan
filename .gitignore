@@ -1,7 +1,5 @@
-<<<<<<< HEAD
 .DS_Store
 node_modules
-/dist
 
 # local env files
 .env.local
@@ -20,7 +18,6 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
-=======
 # Logs
 logs
 *.log
@@ -125,4 +122,3 @@ dist
 
 # TernJS port file
 .tern-port
->>>>>>> 6ac840e2f469d02ea16a0bfa0cc5f7a86add2895
