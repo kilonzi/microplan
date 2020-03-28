@@ -85,8 +85,7 @@ export default {
     };
   },
   mounted() {
-    // this.getLocation();
-    // this.initMap()
+    this.getLocation();
   },
   methods: {
     resetMarkers() {
