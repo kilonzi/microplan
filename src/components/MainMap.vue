@@ -1,14 +1,15 @@
 <template>
   <section>
-    <div v-if="latitude =='' & longitude == ''">
-      <button @click="getLocation" class="primary">Reload Map</button>
-    </div>
     <div class="section-content">
       <div id="mapContainer" class="map-container"></div>
       <div id="toolsContainer" class="tools-container">
         <div class="toggle"></div>
         <div class="tools">
+          <div v-if="latitude =='' & longitude == ''" class="reload">
+            <button @click="getLocation" class="primary">Reload Map</button>
+          </div>
           <h5>Tools & Markers</h5>
+          
           <div class="areas">
             <p>
               <b>Area</b>
@@ -29,8 +30,9 @@
                 :key="index"
                 :data-wenk="index"
                 @click="setPointerIcon(index)"
+                class="pointer"
               >
-                <i :class="point"></i>
+                <img :src="'../images/'+index+'.png'" alt class="point-image" />
               </div>
             </div>
           </div>
@@ -55,17 +57,20 @@ export default {
       currentPointer: "ResetPointer",
       pointers: {
         ResetPointer: "large square icon",
-        ServicePoint: "large plus icon",
-        Hospital: "large hospital icon",
-        HealthFacility: "large plus square icon",
-        HealthCentre: "large user md icon",
         AmbulanceStation: "large ambulance icon",
-        Clinic: "large medkit icon"
+        HealthCentre: "large user md icon",
+        HealthClinic: "large medkit icon",
+        HealthFacility: "large plus square icon",
+        Hospital: "large hospital icon",
+        LearningInstitution: "",
+        MarketPlace: "",
+        ServicePoint: "large plus icon",
+        WaterCrossing: ""
       }
     };
   },
   mounted() {
-    this.getLocation();
+    // this.getLocation();
     // this.initMap()
   },
   methods: {
@@ -98,7 +103,6 @@ export default {
           .replace(" ", "")
           .trim()
           .split(",");
-        console.log(latLng);
         $vm.setPointer(map, latLng);
       });
     },
@@ -132,13 +136,16 @@ export default {
       this.initMap();
     },
     addMarker(lat, lng, map, msg) {
+      var icon = {
+        url: "../images/" + msg + ".png",
+        scaledSize: new window.google.maps.Size(20, 20) // size
+      };
+
       new window.google.maps.Marker({
         position: { lat, lng },
         map: map,
-        animation: window.google.maps.Animation.DROP,
-        title: msg,
         draggable: true,
-        label: msg
+        icon: icon
       });
     }
   }
@@ -215,11 +222,21 @@ button {
 }
 .pointers {
   display: flex;
-  justify-content: space-between;
+  flex-direction: row;
   flex-wrap: wrap;
   padding: 5px;
 }
 .pointers > * {
   margin: 2px;
+}
+.point-image {
+  height: 50px;
+  width: 50px;
+}
+.pointer {
+  width: 100px;
+}
+.reload {
+  margin: 20px 0;
 }
 </style>
