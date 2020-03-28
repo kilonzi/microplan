@@ -1,12 +1,19 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
     <router-view/>
+    <menu-modal></menu-modal>
   </div>
+
 </template>
+<script>
+import MenuModal from '../src/components/MenuModal'
+export default {
+  components:{
+    MenuModal
+  }
+  
+}
+</script>
 
 <style>
 #app {
