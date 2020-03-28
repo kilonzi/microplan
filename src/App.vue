@@ -1,8 +1,19 @@
 <template>
   <div id="app">
     <router-view/>
+    <menu-modal></menu-modal>
   </div>
+
 </template>
+<script>
+import MenuModal from '../src/components/MenuModal'
+export default {
+  components:{
+    MenuModal
+  }
+  
+}
+</script>
 
 <style>
 #app {

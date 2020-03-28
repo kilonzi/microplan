@@ -5,19 +5,23 @@
       <div id="toolsContainer" class="tools-container">
         <div class="toggle"></div>
         <div class="tools">
-          <div v-if="latitude =='' & longitude == ''" class="reload">
-            <button @click="getLocation" class="primary">Reload Map</button>
+          <div class="reload">
+            <button @click="getLocation" class="secondary">Refresh Map</button>
           </div>
           <h5>Tools & Markers</h5>
-          
+
           <div class="areas">
             <p>
               <b>Area</b>
             </p>
             <div class="shapes">
-              <i class="circular large hand point up teal icon"></i>
-              <div class="circle"></div>
-              <div class="rectangle"></div>
+              <i
+                class="circular large hand point up teal icon"
+                @click="resetMarkers()"
+                data-wenk="Reset"
+              ></i>
+              <div class="circle" @click="setAreaType('circle')" data-wenk="Circle Area"></div>
+              <div class="rectangle" @click="setAreaType('rectangle')" data-wenk="Rectangle Area"></div>
             </div>
           </div>
           <div class="markers">
@@ -29,7 +33,7 @@
                 v-for="(point,index) in pointers"
                 :key="index"
                 :data-wenk="index"
-                @click="setPointerIcon(index)"
+                @click="setPointerType(index)"
                 class="pointer"
               >
                 <img :src="'../images/'+index+'.png'" alt class="point-image" />
@@ -47,14 +51,25 @@
 </template>
 
 <script>
+// import Swal from 'sweetalert2'
+import Vue from "vue";
+import VModal from "vue-js-modal";
+Vue.use(VModal);
+
 var geolocation = require("geolocation");
+
 export default {
+  components: {},
   data() {
     return {
       latitude: 0,
       longitude: 0,
       language: "en-US",
+      category: "",
+      currentArea: "",
       currentPointer: "ResetPointer",
+      markers: {},
+      contentString: "<div><div><button>Here</button></div><div></div></div>",
       pointers: {
         ResetPointer: "large square icon",
         AmbulanceStation: "large ambulance icon",
@@ -65,7 +80,7 @@ export default {
         LearningInstitution: "",
         MarketPlace: "",
         ServicePoint: "large plus icon",
-        WaterCrossing: ""
+        CrossingPoint: ""
       }
     };
   },
@@ -74,8 +89,16 @@ export default {
     // this.initMap()
   },
   methods: {
-    setPointerIcon(pointer) {
+    resetMarkers() {
+      this.category = "";
+    },
+    setAreaType(area) {
+      this.currentArea = area;
+      this.category = "area";
+    },
+    setPointerType(pointer) {
       this.currentPointer = pointer;
+      this.category = "pointer";
     },
     initMap() {
       let map = new window.google.maps.Map(
@@ -103,7 +126,17 @@ export default {
           .replace(" ", "")
           .trim()
           .split(",");
-        $vm.setPointer(map, latLng);
+        if ($vm.category == "pointer") {
+          $vm.setPointer(map, latLng);
+        } else if ($vm.category == "area") {
+          if ($vm.currentArea == "circle") {
+            $vm.addCircle(map, parseFloat(latLng[0]), parseFloat(latLng[1]));
+          } else {
+            $vm.addRectangle(map, parseFloat(latLng[0]), parseFloat(latLng[1]));
+          }
+        } else {
+          $vm.resetMarkers();
+        }
       });
     },
     setPointer(map, latLng) {
@@ -136,17 +169,80 @@ export default {
       this.initMap();
     },
     addMarker(lat, lng, map, msg) {
+      let $vm = this
+      let id = Math.floor(Math.random() * Math.floor(100000));
+
       var icon = {
         url: "../images/" + msg + ".png",
-        scaledSize: new window.google.maps.Size(20, 20) // size
+        scaledSize: new window.google.maps.Size(30, 30) // size
       };
 
-      new window.google.maps.Marker({
+      let marker = new window.google.maps.Marker({
+        id: id,
         position: { lat, lng },
         map: map,
         draggable: true,
-        icon: icon
+        icon: icon,
+        zIndex: 10
       });
+
+      this.markers[id] = marker;
+      this.addMarkerListener(marker);
+
+      window.google.maps.event.addListener(marker, "mouseover", function() {
+        let infowindow = $vm.markerContent(marker.id)
+        infowindow.open(map, this);
+      });
+      window.google.maps.event.addListener(marker, "mouseout", function() {
+        let infowindow = $vm.markerContent(marker.id)
+        infowindow.close();
+      });
+    },
+    removeMarker(id) {
+      let marker = this.markers[id];
+      marker.setMap(null);
+    },
+    addCircle(map, lat, lng) {
+      new window.google.maps.Circle({
+        strokeColor: "#FF0000",
+        strokeOpacity: 0.5,
+        strokeWeight: 1,
+        fillColor: "#FF0000",
+        fillOpacity: 0.35,
+        map: map,
+        center: { lat, lng },
+        radius: 200,
+        editable: true
+      });
+    },
+    addRectangle(map, lat, lng) {
+      new window.google.maps.Rectangle({
+        strokeColor: "#FF0000",
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: "#FF0000",
+        fillOpacity: 0.35,
+        map: map,
+        editable: true,
+        bounds: {
+          north: lat + 0.002,
+          south: lat - 0.002,
+          east: lng + 0.002,
+          west: lng - 0.002
+        }
+      });
+    },
+    addMarkerListener(marker) {
+      let $vm = this;
+      window.google.maps.event.addListener(marker, "click", function() {
+        $vm.$modal.show("hello-world", { marker: marker.id });
+      });
+    },
+    markerContent(marker){
+      var infowindow = new window.google.maps.InfoWindow({
+        content: this.contentString[marker]
+      });
+      return infowindow
     }
   }
 };
@@ -212,10 +308,10 @@ button {
 }
 .tools {
   width: 100%;
+  position: relative;
+  height: 95vh;
 }
 .actions {
-  position: absolute;
-  bottom: 10px;
   display: flex;
   justify-content: space-between;
   padding: 5px;
@@ -225,6 +321,7 @@ button {
   flex-direction: row;
   flex-wrap: wrap;
   padding: 5px;
+  height: 60vh;
 }
 .pointers > * {
   margin: 2px;

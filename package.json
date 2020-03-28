@@ -11,7 +11,9 @@
     "geolocation": "^0.2.0",
     "sanitize.css": "^11.0.0",
     "semantic-ui-icon": "^2.3.3",
+    "sweetalert2": "^9.10.7",
     "vue": "^2.6.11",
+    "vue-js-modal": "^1.3.33",
     "vue-router": "^3.1.5",
     "vuex": "^3.1.2",
     "wenk": "^1.0.8"
