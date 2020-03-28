@@ -12,7 +12,7 @@
       <button class="primary">Save</button>
     </div>
     <div class="cancel-action">
-      <button @click="hide" class="tertiary">Cancel</button>
+      <button @click="hide" class="tertiary">Close</button>
     </div>
   </modal>
 </template>
