@@ -19,14 +19,18 @@
               <div class="rectangle"></div>
             </div>
           </div>
-          <div class="points">
+          <div class="markers">
             <p>
               <b>Markers</b>
             </p>
-            <div v-for="(point,index) in pointers" :key="index">
-              <div :data-wenk="point.key">
-                <i :class="point.location"></i>
-                <i>{{point.location}}</i>
+            <div class="pointers">
+              <div
+                v-for="(point,index) in pointers"
+                :key="index"
+                :data-wenk="index"
+                @click="setPointerIcon(index)"
+              >
+                <i :class="point"></i>
               </div>
             </div>
           </div>
@@ -48,9 +52,15 @@ export default {
       latitude: 0,
       longitude: 0,
       language: "en-US",
+      currentPointer: "ResetPointer",
       pointers: {
-        "location": "plus icon",
-        "hospital":"H square icon"
+        ResetPointer: "large square icon",
+        ServicePoint: "large plus icon",
+        Hospital: "large hospital icon",
+        HealthFacility: "large plus square icon",
+        HealthCentre: "large user md icon",
+        AmbulanceStation: "large ambulance icon",
+        Clinic: "large medkit icon"
       }
     };
   },
@@ -59,12 +69,51 @@ export default {
     // this.initMap()
   },
   methods: {
-      initMap(){
-          new window.google.maps.Map(document.getElementById('mapContainer'), {
-          center: {lat: this.latitude, lng: this.longitude},
-          zoom: 14
-        });
-      },
+    setPointerIcon(pointer) {
+      this.currentPointer = pointer;
+    },
+    initMap() {
+      let map = new window.google.maps.Map(
+        document.getElementById("mapContainer"),
+        {
+          center: { lat: this.latitude, lng: this.longitude },
+          zoom: 14,
+          mapTypeControl: false,
+          zoomControl: true,
+          scaleControl: false,
+          fullscreenControl: false,
+          streetViewControl: false
+        }
+      );
+      this.addMarker(this.latitude, this.longitude, map, "HERE");
+      this.addListener(map);
+    },
+    addListener(map) {
+      let $vm = this;
+      map.addListener("click", function(e) {
+        let latLng = e.latLng
+          .toString()
+          .replace("(", "")
+          .replace(")", "")
+          .replace(" ", "")
+          .trim()
+          .split(",");
+        console.log(latLng);
+        $vm.setPointer(map, latLng);
+      });
+    },
+    setPointer(map, latLng) {
+      if (this.currentPointer == "ResetPointer") {
+        this.currentPointer = "ResetPointer";
+      } else {
+        this.addMarker(
+          parseFloat(latLng[0]),
+          parseFloat(latLng[1]),
+          map,
+          this.currentPointer
+        );
+      }
+    },
     getLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(this.showPosition);
@@ -73,7 +122,7 @@ export default {
           if (err) throw err;
           this.latitude = position.coords.latitude;
           this.longitude = position.coords.longitude;
-          this.initializeMap();
+          this.initMap();
         });
       }
     },
@@ -81,6 +130,16 @@ export default {
       this.latitude = position.coords.latitude;
       this.longitude = position.coords.longitude;
       this.initMap();
+    },
+    addMarker(lat, lng, map, msg) {
+      new window.google.maps.Marker({
+        position: { lat, lng },
+        map: map,
+        animation: window.google.maps.Animation.DROP,
+        title: msg,
+        draggable: true,
+        label: msg
+      });
     }
   }
 };
@@ -153,5 +212,14 @@ button {
   display: flex;
   justify-content: space-between;
   padding: 5px;
+}
+.pointers {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 5px;
+}
+.pointers > * {
+  margin: 2px;
 }
 </style>
